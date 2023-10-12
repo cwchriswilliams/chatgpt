@@ -841,16 +841,28 @@ Caution, this will overwrite the existing instance!"
     (chatgpt-mode)
     (setq chatgpt-instance (cons index (current-buffer)))))
 
+(defun chatgpt-select ()
+  "Switch to an existing ChatGPT instance or create a new one."
+  (interactive)
+  (let* ((live-instances (chatgpt--live-instances))
+	 (instance-buffer-names (mapcar 'buffer-name live-instances))
+	 (selected-instance (completing-read "ChatGPT Instance: " instance-buffer-names nil nil)))
+    (if (member selected-instance instance-buffer-names)
+	(chatgpt--pop-to-buffer (get-buffer selected-instance))
+      (chatgpt-new selected-instance))))
+
 ;;;###autoload
-(defun chatgpt-new ()
-  "Run a new instance of ChatGPT."
+(defun chatgpt-new (&optional buffer-name)
+  "Run a new instance of ChatGPT with a buffer named chatgpt-buffer-name-format with either BUFFER-NAME or an index."
   (interactive)
   (let* ((new-index       (chatgpt--new-index))
-         (new-buffer-name (format chatgpt-buffer-name-format new-index)))
+         (new-buffer-name (format chatgpt-buffer-name-format (or buffer-name new-index))))
     (when (get-buffer new-buffer-name)
       (user-error "Internal Error: creating instance that already exists"))
     (chatgpt-register-instance new-index new-buffer-name)
     (chatgpt--pop-to-buffer new-buffer-name)))
+
+
 
 ;;;###autoload
 (defun chatgpt ()
