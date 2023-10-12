@@ -641,6 +641,7 @@ The data is consist of ROLE and CONTENT."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "S-<return>") #'newline)
     (define-key map (kbd "RET") #'chatgpt-input-send)
+    (define-key map (kbd "C-c C-k") #'bury-buffer)
     map)
   "Keymap for `chatgpt-input-mode'.")
 
@@ -725,6 +726,7 @@ The data is consist of ROLE and CONTENT."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "S-<return>") #'newline)
     (define-key map (kbd "RET") #'chatgpt-edit-send)
+    (define-key map (kbd "C-C C-k") #'bury-buffer)
     map)
   "Keymap for `chatgpt-edit-mode'.")
 
@@ -802,6 +804,7 @@ The data is consist of ROLE and CONTENT."
 (defvar chatgpt-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") #'chatgpt-type-response)
+    (define-key map (kbd "q") #'bury-buffer)
     map)
   "Keymap for `chatgpt-mode'.")
 
