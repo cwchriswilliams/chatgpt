@@ -841,15 +841,28 @@ Caution, this will overwrite the existing instance!"
     (chatgpt-mode)
     (setq chatgpt-instance (cons index (current-buffer)))))
 
+(defun chatgpt--select-instance ()
+  "Select an existing ChatGPT instance or a name for a new one."
+  (let* ((live-instances (chatgpt--live-instances))
+	 (instance-buffer-names (mapcar 'buffer-name live-instances))
+	 (selected-instance (completing-read "ChatGPT Instance: " instance-buffer-names nil nil))
+	 (new-or-existing (if (member selected-instance instance-buffer-names) :existing :new)))
+
+    (cons new-or-existing selected-instance)))
+
 (defun chatgpt-select ()
   "Switch to an existing ChatGPT instance or create a new one."
   (interactive)
-  (let* ((live-instances (chatgpt--live-instances))
-	 (instance-buffer-names (mapcar 'buffer-name live-instances))
-	 (selected-instance (completing-read "ChatGPT Instance: " instance-buffer-names nil nil)))
-    (if (member selected-instance instance-buffer-names)
-	(chatgpt--pop-to-buffer (get-buffer selected-instance))
-      (chatgpt-new selected-instance))))
+  (let* ((selected-instance (chatgpt--select-instance)))
+    (if (eq :existing (car selected-instance))
+	(chatgpt--pop-to-buffer (get-buffer (cdr selected-instance)))
+      (chatgpt-new (cdr selected-instance)))))
+
+(defun chatgpt-get-selected-region-or-prompt ()
+  "Get the selected region's content or prompt the user if no region is selected."
+  (if (use-region-p)
+      (buffer-substring-no-properties (region-beginning) (region-end))
+    (read-string "Enter your query: ")))
 
 ;;;###autoload
 (defun chatgpt-new (&optional buffer-name)
@@ -876,6 +889,17 @@ Caution, this will overwrite the existing instance!"
            (chatgpt--pop-to-buffer (nth 0 live-instances)))
           (t
            (chatgpt-new)))))
+
+;;;###autoload
+(defun chatgpt-with-prompt ()
+  "Open ChatGPT with a prompt, using selected region or prompting the user."
+  (interactive)
+  (let ((content (chatgpt-get-selected-region-or-prompt)))
+    (if (cdr (chatgpt--live-instances))
+	(chatgpt-select)
+      (car (chatgpt--live-instances)))
+    (chatgpt-send-response content)))
+
 
 (provide 'chatgpt)
 ;;; chatgpt.el ends here
